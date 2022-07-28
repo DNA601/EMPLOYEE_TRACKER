@@ -31,6 +31,7 @@ function optionStart() {
             message: 'Choose',
             name: 'nextOption',
             choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add A Department', 'View All Roles', 'Add A Role']
+                //list of options
         }])
         .then(
             function(data) {
@@ -42,13 +43,13 @@ function optionStart() {
                 } else if (data.nextOption === 'Update Employee Role') {
                     // updateEmployeeRole();
                 } else if (data.nextOption === 'View All Departments') {
-                    // createIntern()
+                    viewAllDept()
 
                 } else if (data.nextOption === 'Add A Department') {
                     // createIntern()
 
-                } else if (data.nextOption === 'Add A Department') {
-                    // createIntern()
+                } else if (data.nextOption === 'View All Roles') {
+                    viewAllRoles()
 
                 } else if (data.nextOption === 'Add A Department') {
                     // createIntern()
@@ -56,11 +57,43 @@ function optionStart() {
                 }
             }
         )
+        // calling function for each select
 }
 
 function allEmployees() {
 
     const sql = `SELECT * FROM employee`;
+
+    db.query(sql, (err, rows) => {
+        if (err) {
+            throw err
+        }
+        console.table(rows)
+        optionStart()
+    });
+
+
+}
+
+
+function viewAllDept() {
+
+    const sql = `SELECT * FROM department`;
+
+    db.query(sql, (err, rows) => {
+        if (err) {
+            throw err
+        }
+        console.table(rows)
+        optionStart()
+    });
+
+
+}
+
+function viewAllRoles() {
+
+    const sql = `SELECT * FROM role`;
 
     db.query(sql, (err, rows) => {
         if (err) {
