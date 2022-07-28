@@ -41,17 +41,17 @@ function optionStart() {
                     // addEmployees()
 
                 } else if (data.nextOption === 'Update Employee Role') {
-                    // updateEmployeeRole();
+                    updateEm();
                 } else if (data.nextOption === 'View All Departments') {
                     viewAllDept()
 
-                } else if (data.nextOption === 'Add A Department') {
+                } else if (data.nextOption === 'Add Department') {
                     // add()
 
                 } else if (data.nextOption === 'View All Roles') {
                     viewAllRoles()
 
-                } else if (data.nextOption === 'Add A Department') {
+                } else if (data.nextOption === 'Add Role') {
                     // createIntern()
 
                 }
@@ -117,5 +117,79 @@ function viewAllRoles() {
 
 
 }
+
+function updateEm() {
+    employeeUpdate();
+
+}
+
+function employeeUpdate() {
+    const sql =
+        `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
+    FROM employee e
+    JOIN role r
+      ON e.role_id = r.id
+    JOIN department d
+    ON d.id = r.department_id
+    JOIN employee m
+      ON m.id = e.manager_id`
+    db.query(sql, function(err, res) {
+        if (err) throw err;
+        const newEmployeeChoices = res.map(({ id, first_name, last_name }) => ({
+            value: id,
+            name: `${first_name} ${last_name}`
+        }));
+        console.table(res);
+        roleUpdate(newEmployeeChoices);
+    });
+}
+
+function roleUpdate(newEmployeeChoices) {
+    const sql =
+        `SELECT r.id, r.title, r.salary 
+    FROM role r`
+    let roleUpdateTo;
+    db.query(sql, function(err, res) {
+        if (err) throw err;
+        roleUpdateTo = res.map(({ id, title, salary }) => ({
+            value: id,
+            title: `${title}`,
+            salary: `${salary}`
+        }));
+        console.table(res);
+        promptEmployeeRole(newEmployeeChoices, roleUpdateTo);
+    });
+}
+
+function promptEmployeeRole(newEmployeeChoices, roleUpdateTo) {
+
+    inquirer
+        .prompt([{
+                type: "list",
+                name: "employee_id",
+                message: "Who will be promoted?",
+                choices: newEmployeeChoices
+            },
+            {
+                type: "list",
+                name: "role_id",
+                message: "Choose promotion id",
+                choices: roleUpdateTo
+            },
+        ])
+        .then(function(answer) {
+            const sql = `UPDATE employee SET role_id = ? WHERE id = ?`
+            db.query(sql, [answer.role_id,
+                    answer.employee_id
+                ],
+                function(err, res) {
+                    if (err) throw err;
+                    console.table(res);
+                    console.log(res.affectedRows + " promotion success");
+                    optionStart();
+                });
+        });
+}
+
 
 optionStart()
