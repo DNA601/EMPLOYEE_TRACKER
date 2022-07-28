@@ -28,7 +28,7 @@ const db = mysql.createConnection({
 function optionStart() {
     inquirer.prompt([{
             type: 'list',
-            message: 'Choose',
+            message: 'What would you like to view?',
             name: 'nextOption',
             choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add A Department', 'View All Roles', 'Add A Role']
                 //list of options
@@ -46,7 +46,7 @@ function optionStart() {
                     viewAllDept()
 
                 } else if (data.nextOption === 'Add A Department') {
-                    // createIntern()
+                    // add()
 
                 } else if (data.nextOption === 'View All Roles') {
                     viewAllRoles()
@@ -62,7 +62,14 @@ function optionStart() {
 
 function allEmployees() {
 
-    const sql = `SELECT * FROM employee`;
+    const sql = `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
+    FROM employee e
+    LEFT JOIN role r
+      ON e.role_id = r.id
+    LEFT JOIN department d
+    ON d.id = r.department_id
+    LEFT JOIN employee m
+      ON m.id = e.manager_id`;
 
     db.query(sql, (err, rows) => {
         if (err) {
@@ -78,7 +85,7 @@ function allEmployees() {
 
 function viewAllDept() {
 
-    const sql = `SELECT * FROM department`;
+    const sql = `SELECT * FROM department `;
 
     db.query(sql, (err, rows) => {
         if (err) {
@@ -93,7 +100,12 @@ function viewAllDept() {
 
 function viewAllRoles() {
 
-    const sql = `SELECT * FROM role`;
+    const sql =
+        `SELECT r.id, r.title, r.salary, d.name AS department
+        FROM role r 
+        LEFT JOIN department d
+        ON d.id = r.department_id
+        `;
 
     db.query(sql, (err, rows) => {
         if (err) {
