@@ -11,26 +11,12 @@ const db = mysql.createConnection({
         //dependencies
 });
 
-// const questions = [{
-//     type: 'list',
-//     message: 'What would you like to do?',
-//     name: 'task'
-// }]
-
-// function roles() {
-//     inquirer.prompt(questions)
-//         .then(function(data) {
-//             console.log(data)
-//         })
-// }
-
-
 function optionStart() {
     inquirer.prompt([{
             type: 'list',
             message: 'What would you like to view?',
             name: 'nextOption',
-            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add A Department', 'View All Roles', 'Add A Role']
+            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add Department', 'View All Roles', 'Add A Role']
                 //list of options
         }])
         .then(
@@ -46,7 +32,7 @@ function optionStart() {
                     viewAllDept()
 
                 } else if (data.nextOption === 'Add Department') {
-                    // add()
+                    addDept()
 
                 } else if (data.nextOption === 'View All Roles') {
                     viewAllRoles()
@@ -69,7 +55,7 @@ function allEmployees() {
     LEFT JOIN department d
     ON d.id = r.department_id
     LEFT JOIN employee m
-      ON m.id = e.manager_id`;
+      ON m.id = e.manager_id`; //calling sql to display right information
 
     db.query(sql, (err, rows) => {
         if (err) {
@@ -78,10 +64,7 @@ function allEmployees() {
         console.table(rows)
         optionStart()
     });
-
-
 }
-
 
 function viewAllDept() {
 
@@ -94,8 +77,6 @@ function viewAllDept() {
         console.table(rows)
         optionStart()
     });
-
-
 }
 
 function viewAllRoles() {
@@ -106,16 +87,15 @@ function viewAllRoles() {
         LEFT JOIN department d
         ON d.id = r.department_id
         `;
+    //calling sql to display right information
 
     db.query(sql, (err, rows) => {
         if (err) {
             throw err
         }
-        console.table(rows)
+        console.table(rows) // console.table which shows the table
         optionStart()
     });
-
-
 }
 
 function updateEm() {
@@ -132,19 +112,19 @@ function employeeUpdate() {
     JOIN department d
     ON d.id = r.department_id
     JOIN employee m
-      ON m.id = e.manager_id`
+      ON m.id = e.manager_id` //calling sql to display right information
     db.query(sql, function(err, res) {
         if (err) throw err;
-        const newEmployeeChoices = res.map(({ id, first_name, last_name }) => ({
+        const newRoleEmployeeChoices = res.map(({ id, first_name, last_name }) => ({
             value: id,
             name: `${first_name} ${last_name}`
         }));
         console.table(res);
-        roleUpdate(newEmployeeChoices);
+        roleUpdate(newRoleEmployeeChoices);
     });
 }
 
-function roleUpdate(newEmployeeChoices) {
+function roleUpdate(newRoleEmployeeChoices) {
     const sql =
         `SELECT r.id, r.title, r.salary 
     FROM role r`
@@ -157,18 +137,18 @@ function roleUpdate(newEmployeeChoices) {
             salary: `${salary}`
         }));
         console.table(res);
-        promptEmployeeRole(newEmployeeChoices, roleUpdateTo);
+        promoteEmployeeRole(newRoleEmployeeChoices, roleUpdateTo);
     });
 }
 
-function promptEmployeeRole(newEmployeeChoices, roleUpdateTo) {
+function promoteEmployeeRole(newRoleEmployeeChoices, roleUpdateTo) {
 
     inquirer
         .prompt([{
                 type: "list",
                 name: "employee_id",
                 message: "Who will be promoted?",
-                choices: newEmployeeChoices
+                choices: newRoleEmployeeChoices
             },
             {
                 type: "list",
@@ -190,6 +170,60 @@ function promptEmployeeRole(newEmployeeChoices, roleUpdateTo) {
                 });
         });
 }
+
+
+
+
+
+
+
+function addDept() {
+
+    const sql =
+        `SELECT * FROM department `;
+
+    db.query(sql, function(err, res) {
+        if (err) throw err;
+
+        const newDept = res.map(({ id, name }) => ({
+            value: id,
+            name: `${name}`,
+        }));
+
+        console.table(res);
+
+        insertDept(newDept);
+    });
+}
+
+function insertDept(newDept) {
+
+    inquirer.prompt([{
+            type: "input",
+            name: "name",
+            message: "Add the new Department",
+            choices: newDept
+        }, ])
+        .then(function(answer) {
+            console.log(answer);
+
+            const sql = `INSERT INTO department SET ?`
+            db.query(sql, {
+                    name: answer.name
+                },
+                function(err, res) {
+                    if (err) throw err;
+
+                    console.table(res);
+                    console.log(" WOW! New department added ");
+
+                    optionStart();
+                });
+        });
+}
+
+
+
 
 
 optionStart()
