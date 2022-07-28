@@ -10,13 +10,14 @@ const db = mysql.createConnection({
     database: 'employeesDB'
         //dependencies
 });
-
-function optionStart() {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function optionStart() { ////STARTING PROMPT
     inquirer.prompt([{
             type: 'list',
             message: 'What would you like to view?',
             name: 'nextOption',
-            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add Department', 'View All Roles', 'Add A Role']
+            choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Departments', 'Add Department', 'View All Roles', 'Add Role']
                 //list of options
         }])
         .then(
@@ -24,7 +25,7 @@ function optionStart() {
                 if (data.nextOption === 'View All Employees') {
                     allEmployees()
                 } else if (data.nextOption === 'Add Employee') {
-                    // addEmployees()
+                    // newPerson()
 
                 } else if (data.nextOption === 'Update Employee Role') {
                     updateEm();
@@ -38,15 +39,16 @@ function optionStart() {
                     viewAllRoles()
 
                 } else if (data.nextOption === 'Add Role') {
-                    // createIntern()
+                    newRole()
 
                 }
             }
         )
         // calling function for each select
 }
-
-function allEmployees() {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function allEmployees() { ////VIEW ALL EMPLOYEES
 
     const sql = `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
     FROM employee e
@@ -65,8 +67,9 @@ function allEmployees() {
         optionStart()
     });
 }
-
-function viewAllDept() {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function viewAllDept() { ////VIEW ALLL DEPARTMENTS
 
     const sql = `SELECT * FROM department `;
 
@@ -78,12 +81,13 @@ function viewAllDept() {
         optionStart()
     });
 }
-
-function viewAllRoles() {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function viewAllRoles() { /////VIEW ALL ROLES
 
     const sql =
         `SELECT r.id, r.title, r.salary, d.name AS department
-        FROM role r 
+        FROM role r
         LEFT JOIN department d
         ON d.id = r.department_id
         `;
@@ -97,22 +101,18 @@ function viewAllRoles() {
         optionStart()
     });
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function updateEm() {
-    employeeUpdate();
+    employeeUpdate(); ////UPDATE EMPLOYEEE ROLE
 
 }
 
 function employeeUpdate() {
     const sql =
         `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
-    FROM employee e
-    JOIN role r
-      ON e.role_id = r.id
-    JOIN department d
-    ON d.id = r.department_id
-    JOIN employee m
-      ON m.id = e.manager_id` //calling sql to display right information
+    FROM employee e JOIN role r ON e.role_id = r.id JOIN department d
+    ON d.id = r.department_id JOIN employee m ON m.id = e.manager_id` //calling sql to display right information
     db.query(sql, function(err, res) {
         if (err) throw err;
         const newRoleEmployeeChoices = res.map(({ id, first_name, last_name }) => ({
@@ -126,7 +126,7 @@ function employeeUpdate() {
 
 function roleUpdate(newRoleEmployeeChoices) {
     const sql =
-        `SELECT r.id, r.title, r.salary 
+        `SELECT r.id, r.title, r.salary
     FROM role r`
     let roleUpdateTo;
     db.query(sql, function(err, res) {
@@ -170,14 +170,11 @@ function promoteEmployeeRole(newRoleEmployeeChoices, roleUpdateTo) {
                 });
         });
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
-function addDept() {
+function addDept() { /////// ADD A DEPARTMENT
 
     const sql =
         `SELECT * FROM department `;
@@ -221,9 +218,66 @@ function insertDept(newDept) {
                 });
         });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function newRole() { /////// ADD ROLE
+
+    const sql =
+        `SELECT d.id, d.name, r.salary AS budget
+    FROM employee e
+    JOIN role r ON e.role_id = r.id JOIN department d ON d.id = r.department_id GROUP BY d.id, d.name`;
+
+    db.query(sql, function(err, res) {
+        if (err) throw err;
+        const whatDept = res.map(({ id, name }) => ({
+            value: id,
+            name: `${id} ${name}`
+        }));
+        console.table(res);
+        insertRole(whatDept);
+    });
+}
+
+function insertRole(whatDept) {
+    inquirer.prompt([{
+                type: "input",
+                name: "title",
+                message: "What is the new role?"
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "What is the salary of the new role?",
+            },
+            {
+                type: "list",
+                name: "dept_id",
+                message: "What department does the new role belong to?",
+                choices: whatDept
+            },
+        ])
+        .then(function(answer) {
+            const sql = `INSERT INTO role SET ?`
+            db.query(sql, {
+                    title: answer.title,
+                    salary: answer.salary,
+                    department_id: answer.dept_id
+                },
+                function(err, res) {
+                    if (err) throw err;
+
+                    console.table(res);
+                    console.log("WOW! There is a new role.");
+                    optionStart();
+                });
+        });
+
+}
 
 
-
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//ADD EMPLOYEE
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 optionStart()
