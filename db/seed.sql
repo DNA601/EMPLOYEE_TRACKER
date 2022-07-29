@@ -33,3 +33,8 @@ INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Jay", "Greenman", 4, 7);
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Bear", "Oak", 1, 2);
+
+
+SELECT d.id, d.name, r.salary AS budget
+    FROM employee e
+    JOIN role r ON e.role_id = r.id JOIN department d ON d.id = r.department_id GROUP BY d.id, d.name

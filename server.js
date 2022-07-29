@@ -13,6 +13,9 @@ const db = mysql.createConnection({
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function optionStart() { ////STARTING PROMPT
+
+
+
     inquirer.prompt([{
             type: 'list',
             message: 'What would you like to view?',
@@ -25,7 +28,7 @@ function optionStart() { ////STARTING PROMPT
                 if (data.nextOption === 'View All Employees') {
                     allEmployees()
                 } else if (data.nextOption === 'Add Employee') {
-                    // newPerson()
+                    newPerson()
 
                 } else if (data.nextOption === 'Update Employee Role') {
                     updateEm();
@@ -202,16 +205,12 @@ function insertDept(newDept) {
             choices: newDept
         }, ])
         .then(function(answer) {
-            console.log(answer);
-
             const sql = `INSERT INTO department SET ?`
             db.query(sql, {
                     name: answer.name
                 },
                 function(err, res) {
                     if (err) throw err;
-
-                    console.table(res);
                     console.log(" WOW! New department added ");
 
                     optionStart();
@@ -229,11 +228,13 @@ function newRole() { /////// ADD ROLE
 
     db.query(sql, function(err, res) {
         if (err) throw err;
+
         const whatDept = res.map(({ id, name }) => ({
+
             value: id,
             name: `${id} ${name}`
         }));
-        console.table(res);
+
         insertRole(whatDept);
     });
 }
@@ -266,7 +267,7 @@ function insertRole(whatDept) {
                 function(err, res) {
                     if (err) throw err;
 
-                    console.table(res);
+
                     console.log("WOW! There is a new role.");
                     optionStart();
                 });
@@ -278,6 +279,67 @@ function insertRole(whatDept) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ADD EMPLOYEE
+function newPerson() {
+    const sql =
+        `SELECT  r.title, r.id, r.salary 
+        FROM role r`
+
+
+    db.query(sql, function(err, res) {
+        if (err) throw err;
+
+        const person = res.map(({ title, id, salary }) => ({
+            title: title,
+            value: id,
+
+            salary: salary
+        }));
+
+
+        personInsert(person);
+    });
+}
+
+function personInsert(person) {
+
+    inquirer
+        .prompt([{
+                type: "input",
+                name: "first_name",
+                message: "New employee's First Name?"
+            },
+            {
+                type: "input",
+                name: "last_name",
+                message: "New employee's Last Name?"
+            },
+            {
+                type: "list",
+                name: "role_id",
+                message: "What role will the new Employee have?? Choose by id!!",
+                choices: person
+            },
+
+        ])
+        .then(function(answer) {
+            console.log(answer);
+
+            const sql = `INSERT INTO employee SET ?`
+            db.query(sql, {
+                    first_name: answer.first_name,
+                    last_name: answer.last_name,
+                    role_id: answer.role_id,
+                },
+                function(err, res) {
+                    if (err) throw err;
+
+
+                    console.log("WELCOME!!!!!");
+
+                    optionStart();
+                });
+        });
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 optionStart()
