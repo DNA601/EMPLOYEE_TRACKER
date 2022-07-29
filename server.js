@@ -295,7 +295,7 @@ function newPerson() {
             salary: salary
         }));
 
-
+        console.table(res);
         personInsert(person);
     });
 }
@@ -333,7 +333,7 @@ function personInsert(person) {
                 function(err, res) {
                     if (err) throw err;
 
-
+                    console.table(res);
                     console.log("WELCOME!!!!!");
 
                     optionStart();
